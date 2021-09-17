@@ -1,44 +1,36 @@
-import  {useState, useEffect } from "react";
-import env from "react-dotenv";
-
+import React from 'react';
 import Header from "./components/Header";
+import StatsCard from "./components/StatsCard";
+
+import { useStateValue } from './StateProvider';
 
 function App() {
-	const [playerStats, setPlayerStats] = useState([])
-
-	useEffect(() => {
-		const options = {
-			headers: {
-				Authorization: env.REACT_APP_PUBG,
-				Accept: "application/vnd.api+json"
-			}
-		}
-
-		const fetchData = async () => {
-            await fetch('https://api.pubg.com/shards/steam/players?filter[playerNames]=panflutejam', options)
-            .then(response => response.json())
-            .then(data => {
-				console.log("DATA: ", data)
-                setPlayerStats(data.data)
-            });
-        }
-        fetchData();
-		
-	}, [])
-	console.log('stats', playerStats)
-
+	const [{ playerStats, playerName, status }, dispatch] = useStateValue();
   return (
-    <div className="App bg-gray-400 h-screen w-screen">
+    <div className="App bg-white h-screen w-screen">
 		<Header />
-		
-      	{playerStats.map(player => (
-			  <div>
-				  <h1>{player.attributes.shardId}</h1>
-			  	<h1>{player.attributes.name}</h1>
-			  	<h1>{player.id}</h1>
-			  </div>
-		  ))
+		{
+			!playerStats ? (
+				<h1 className="text-center text-3xl mt-5">{status}</h1>
+			) :(
+				<main className="max-w-7xl mx-auto px-8 sm:px-16">
+					<h1 className="text-center text-3xl mt-5">{playerName}</h1>
+					<section className="flex-grow pt-14 px-6">
+						<div className="flex justify-between">
+							{Object.entries(playerStats?.data.attributes.gameModeStats).map(([gameMode, data]) => (
+								<StatsCard 
+									key={gameMode}
+									title={gameMode}
+									data={data}
+								/>
+							))}
+						</div>
+					</section>
+				</main>
+			)
+			
 		}
+		
     </div>
   );
 }
